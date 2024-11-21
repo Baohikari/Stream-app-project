@@ -22,18 +22,21 @@ namespace Stream_app_project
         private void watching_request_Click(object sender, EventArgs e)
         {
             string viewerName = viewer_name_input.Text;
-
             string serverIP = ServerSingleton.Instance.ServerIP;
             int imagePort = ServerSingleton.Instance.ImagePort;
             int audioPort = ServerSingleton.Instance.AudioPort;
 
-            if(ConnectToServer(serverIP, imagePort, audioPort))
+            if (ConnectToServer(serverIP, imagePort, audioPort))
             {
-
+                MessageBox.Show("Kết nối thành công đến server!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                
+                Viewer_watching viewerStreaming = new Viewer_watching(viewerName, serverIP, imagePort, audioPort);
+                viewerStreaming.Show();
+                this.Hide();
             }
             else
             {
-                MessageBox.Show("Server is not online");
+                MessageBox.Show("Không thể kết nối đến server. Vui lòng thử lại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -75,11 +78,13 @@ namespace Stream_app_project
                 // Send the ping message to the server
                 udpClient.Send(message, message.Length, endPoint);
 
-                // Wait for a response (a small timeout ensures it doesn't hang if server doesn't reply)
-                byte[] response = udpClient.Receive(ref endPoint);
+                // Wait for a response
+                IPEndPoint responseEndPoint = null;
+                byte[] response = udpClient.Receive(ref responseEndPoint);
 
-                // If we receive a response, the server is online for that port
-                return response.Length > 0;
+                // Check if response is "pong"
+                string responseMessage = Encoding.UTF8.GetString(response);
+                return responseMessage == "pong";
             }
             catch (Exception)
             {

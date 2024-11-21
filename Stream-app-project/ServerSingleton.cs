@@ -30,6 +30,10 @@ namespace Stream_app_project
         public int ImagePort { get; set; } = 9000;
         public int AudioPort { get; set; } = 9001;
 
+        private UdpClient controlServer;
+        private UdpClient imageServer;
+        private UdpClient audioServer;
+
         public void SetLocalIPAddress()
         {
             var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
@@ -52,6 +56,72 @@ namespace Stream_app_project
             }
 
             throw new Exception("Wi-Fi IPv4 not found!");
+        }
+
+        public void StartUdpServers()
+        {
+            // Kiểm tra port trước khi khởi chạy
+            if (!IsPortAvailable(ControlPort))
+                throw new Exception($"Port {ControlPort} is already in use.");
+            if (!IsPortAvailable(ImagePort))
+                throw new Exception($"Port {ImagePort} is already in use.");
+            if (!IsPortAvailable(AudioPort))
+                throw new Exception($"Port {AudioPort} is already in use.");
+
+            try
+            {
+                // Khởi động các server UDP
+                controlServer = new UdpClient(ControlPort);
+                Console.WriteLine($"Control server started on port {ControlPort}");
+
+                imageServer = new UdpClient(ImagePort);
+                Console.WriteLine($"Image server started on port {ImagePort}");
+
+                audioServer = new UdpClient(AudioPort);
+                Console.WriteLine($"Audio server started on port {AudioPort}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error starting UDP servers: {ex.Message}");
+                throw;
+            }
+        }
+
+        private bool IsPortAvailable(int port)
+        {
+            var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
+            var udpListeners = ipGlobalProperties.GetActiveUdpListeners();
+
+            return !udpListeners.Any(listener => listener.Port == port);
+        }
+
+        private void StartPingResponder(int controlPort)
+        {
+            Task.Run(() =>
+            {
+                using (UdpClient udpServer = new UdpClient(controlPort))
+                {
+                    IPEndPoint remoteEndPoint = null;
+                    while (true)
+                    {
+                        try
+                        {
+                            byte[] receivedData = udpServer.Receive(ref remoteEndPoint);
+                            string receivedMessage = Encoding.UTF8.GetString(receivedData);
+
+                            if (receivedMessage == "ping")
+                            {
+                                byte[] response = Encoding.UTF8.GetBytes("pong");
+                                udpServer.Send(response, response.Length, remoteEndPoint);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Ping responder error: {ex.Message}");
+                        }
+                    }
+                }
+            });
         }
     }
 }

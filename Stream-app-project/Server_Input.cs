@@ -30,17 +30,22 @@ namespace Stream_app_project
                 }
 
                 // Lưu thông tin vào Singleton
-                ServerSingleton.Instance.SetLocalIPAddress();
-                ServerSingleton.Instance.StreamerName = serverName;
-                ServerSingleton.Instance.StreamTitle = streamTitle;
+                var serverSingleton = ServerSingleton.Instance;
+                serverSingleton.SetLocalIPAddress();
+                serverSingleton.StreamerName = serverName;
+                serverSingleton.StreamTitle = streamTitle;
 
-                // Thông báo thông tin đã lưu
+                // Kiểm tra và khởi động server UDP
+                serverSingleton.StartUdpServers();
+
+                // Thông báo thông tin đã lưu và server đã khởi chạy
                 MessageBox.Show($"Server Name: {serverName}\n" +
                                 $"Stream Title: {streamTitle}\n" +
-                                $"Server IP: {ServerSingleton.Instance.ServerIP}\n" +
-                                $"Image Port: {ServerSingleton.Instance.ImagePort}\n" +
-                                $"Audio Port: {ServerSingleton.Instance.AudioPort}\n" +
-                                $"Control Port: {ServerSingleton.Instance.ControlPort}",
+                                $"Server IP: {serverSingleton.ServerIP}\n" +
+                                $"Image Port: {serverSingleton.ImagePort}\n" +
+                                $"Audio Port: {serverSingleton.AudioPort}\n" +
+                                $"Control Port: {serverSingleton.ControlPort}\n" +
+                                $"UDP servers started successfully.",
                                 "Thông tin Server");
 
                 // Chuyển sang form Server_Streaming

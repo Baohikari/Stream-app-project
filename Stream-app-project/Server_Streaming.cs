@@ -44,6 +44,7 @@ namespace Stream_app_project
 
             // Khởi tạo UDP client để gửi video
             videoClient = new UdpClient();
+
             MessageBox.Show("Start transmitting video....");
         }
 
@@ -90,6 +91,7 @@ namespace Stream_app_project
                                 // Send each smaller packet
                                 videoClient.Send(packet, packet.Length, new System.Net.IPEndPoint(
                                     System.Net.IPAddress.Parse(ServerSingleton.Instance.ServerIP), ServerSingleton.Instance.ImagePort));
+                                Console.WriteLine($"Sending video packet size: {buffer.Length}");
                             }
                         }
                         else
@@ -143,6 +145,7 @@ namespace Stream_app_project
                         audioClient.Send(packet, packet.Length, new System.Net.IPEndPoint(
                             System.Net.IPAddress.Parse(ServerSingleton.Instance.ServerIP), ServerSingleton.Instance.AudioPort));
                     }
+                    Console.WriteLine($"Sending audio packet size: {e.Buffer.Length}");
                 }
                 else
                 {
@@ -161,6 +164,8 @@ namespace Stream_app_project
         {
             try
             {
+                ServerSingleton.Instance.StartServer();
+                
                 // Bắt đầu truyền video
                 StartVideoStreaming();
 

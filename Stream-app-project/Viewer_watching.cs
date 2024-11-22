@@ -36,6 +36,10 @@ namespace Stream_app_project
             this.audioPort = audioPort;
             Console.WriteLine("Server IP in Viewer_watching: " + serverIP);
 
+            lblName_client.Text = ServerSingleton.Instance.StreamerName;
+            lblTitle_client.Text = ServerSingleton.Instance.StreamTitle;
+            lblViewerName.Text = viewerName;
+
             InitializeComponent();
         }
         private void StreamViewer_Load(object sender, EventArgs e)
@@ -50,6 +54,7 @@ namespace Stream_app_project
                 videoEndPoint = new IPEndPoint(IPAddress.Parse(serverIP), imagePort);
                 audioEndPoint = new IPEndPoint(IPAddress.Parse(serverIP), audioPort);
 
+                Console.WriteLine("Viewer initialized with IP: " + serverIP);
                 // Start receiving video and audio in separate tasks
                 Task.Run(() => ReceiveVideoStream());
                 Task.Run(() => ReceiveAudioStream());
@@ -64,27 +69,33 @@ namespace Stream_app_project
         {
             try
             {
+                if (videoClient == null)
+                {
+                    MessageBox.Show("videoClient chưa được khởi tạo.");
+                    return;
+                }
+
                 byte[] buffer = new byte[65507];
                 MemoryStream ms = new MemoryStream();
 
                 while (true)
                 {
-                    //Receive data
+                    // Nhận dữ liệu từ server
                     byte[] data = videoClient.Receive(ref videoEndPoint);
                     ms.Write(data, 0, data.Length);
 
-                    if(ms.Length > 0)
+                    if (ms.Length > 0)
                     {
                         ms.Seek(0, SeekOrigin.Begin);
                         Bitmap bitmap = new Bitmap(ms);
 
-                        // Update the UI to show the image
+                        // Cập nhật UI với hình ảnh
                         Invoke(new Action(() =>
                         {
                             watching_screen.Image = bitmap;
                         }));
 
-                        ms.SetLength(0); // Reset the memory stream for the next frame
+                        ms.SetLength(0); // Reset MemoryStream cho khung hình tiếp theo
                     }
                 }
             }

@@ -21,11 +21,13 @@ namespace Stream_app_project
 
         private void watching_request_Click(object sender, EventArgs e)
         {
+            ServerSingleton.Instance.LoadServerIP();
             string viewerName = viewer_name_input.Text;
             string serverIP = ServerSingleton.Instance.ServerIP;
             int imagePort = ServerSingleton.Instance.ImagePort;
             int audioPort = ServerSingleton.Instance.AudioPort;
 
+            Console.WriteLine("Server IP: " + serverIP);
             if (ConnectToServer(serverIP, imagePort, audioPort))
             {
                 MessageBox.Show("Kết nối thành công đến server!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -49,12 +51,14 @@ namespace Stream_app_project
                 {
                     udpClient.Client.ReceiveTimeout = 3000;  // Set timeout to 3 seconds
 
+                    Console.WriteLine($"Trying to connect to {serverIP} on ImagePort: {imagePort}");
                     // Try connecting to the image port first
                     if (SendPing(udpClient, serverIP, imagePort))
                     {
                         // If video port responds, try the audio port
                         if (SendPing(udpClient, serverIP, audioPort))
                         {
+                            Console.WriteLine("Audio port ping successful.");
                             return true; // Server is reachable on both ports
                         }
                     }

@@ -34,6 +34,7 @@ namespace Stream_app_project
             this.serverIP = serverIP;
             this.imagePort = imagePort;
             this.audioPort = audioPort;
+            Console.WriteLine("Server IP in Viewer_watching: " + serverIP);
 
             InitializeComponent();
         }
